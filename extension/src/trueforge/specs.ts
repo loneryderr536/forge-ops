@@ -1,12 +1,18 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export function loadAgentSpec(name: 'groundwork-main' | 'groundwork-inline', modelOverride?: string): any {
+export function loadAgentSpec(name: 'Forge-ops' | 'groundwork-main' | 'groundwork-inline', modelOverride?: string): any {
   // Check candidate paths for agent json
+  const currentDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
+  const fileBaseName = name === 'Forge-ops' ? 'Forge-ops' : name;
+  const altBaseName = name === 'Forge-ops' ? 'groundwork-main' : 'Forge-ops';
   const candidates = [
-    path.resolve(__dirname, `../../../agent/${name}.json`),
-    path.resolve(__dirname, `../../agent/${name}.json`),
-    path.resolve(process.cwd(), `agent/${name}.json`),
+    path.resolve(currentDir, `../../../agent/${fileBaseName}.json`),
+    path.resolve(currentDir, `../../../agent/${altBaseName}.json`),
+    path.resolve(currentDir, `../../agent/${fileBaseName}.json`),
+    path.resolve(currentDir, `../../agent/${altBaseName}.json`),
+    path.resolve(process.cwd(), `agent/${fileBaseName}.json`),
+    path.resolve(process.cwd(), `agent/${altBaseName}.json`),
   ];
 
   for (const cand of candidates) {
@@ -31,7 +37,7 @@ export function loadAgentSpec(name: 'groundwork-main' | 'groundwork-inline', mod
 
   return {
     model: { name: modelOverride || 'anthropic/claude-3-7-sonnet', params: { temperature: 0.2, max_tokens: 4096 } },
-    instructions: 'You are Groundwork, a careful coding agent working inside the user VS Code workspace.',
+    instructions: 'You are Forge-ops, a careful coding agent working inside the user VS Code workspace.',
     mcp_servers: [{ name: 'groundwork-editor', enable_tools: ['@all'], require_approval_for_tools: ['edit_file', 'run_command'], preload: true }],
     config: { iteration_limit: 60, dynamic_sub_agents: { enabled: true }, context_management: { compaction: { enabled: true }, large_tool_response: { enabled: true } } },
   };

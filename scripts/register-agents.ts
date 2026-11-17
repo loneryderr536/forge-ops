@@ -1,8 +1,16 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export function loadAgentSpec(name: 'groundwork-main' | 'groundwork-inline', modelOverride?: string): any {
-  const filePath = path.resolve(__dirname, `../agent/${name}.json`);
+const currentDir = typeof __dirname !== 'undefined'
+  ? __dirname
+  : path.dirname(fileURLToPath(import.meta.url));
+
+export function loadAgentSpec(name: 'Forge-ops' | 'groundwork-main' | 'groundwork-inline', modelOverride?: string): any {
+  let filePath = path.resolve(currentDir, `../agent/${name}.json`);
+  if (!fs.existsSync(filePath) && name === 'Forge-ops') {
+    filePath = path.resolve(currentDir, '../agent/groundwork-main.json');
+  }
   const raw = fs.readFileSync(filePath, 'utf-8');
   const parsed = JSON.parse(raw);
   if (modelOverride && parsed.manifest && parsed.manifest.model) {
@@ -12,11 +20,11 @@ export function loadAgentSpec(name: 'groundwork-main' | 'groundwork-inline', mod
 }
 
 export async function registerAgents(baseUrl = 'http://localhost:8790'): Promise<void> {
-  const mainSpec = loadAgentSpec('groundwork-main');
+  const mainSpec = loadAgentSpec('Forge-ops');
   const inlineSpec = loadAgentSpec('groundwork-inline');
 
   const payloadMain = {
-    name: 'groundwork-main',
+    name: 'Forge-ops',
     description: 'Editor-native coding agent: evidence-based retrieval, reviewed multi-file edits, tests.',
     manifest: mainSpec
   };

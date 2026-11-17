@@ -162,7 +162,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const result = await runWithFallback(
       models,
       async (modelName) => {
-        const spec = loadAgentSpec('groundwork-main', modelName);
+        const spec = loadAgentSpec('Forge-ops', modelName);
         const sessId = await client.startSession({ spec });
         currentSessionId = sessId;
         return await client.runTurn(sessId, finalPrompt, handlers);
@@ -312,7 +312,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand('groundwork.ping', async () => {
       try {
-        const spec = loadAgentSpec('groundwork-main');
+        const spec = loadAgentSpec('Forge-ops');
         vscode.window.showInformationMessage(`TrueForge Agent Spec Loaded: ${spec.model?.name}`);
       } catch (err: any) {
         vscode.window.showErrorMessage(`Ping failed: ${err.message}`);

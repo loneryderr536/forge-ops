@@ -25,7 +25,7 @@ Remote MCP server registration with TrueForge:
 ## 2. Session and Turn Lifecycle
 
 - **Create session**: `POST /api/v1/sessions`
-  - Body: `{ "agent": { "name": "groundwork-main" } }` or `{ "agent": { "spec": { ...manifest } } }`
+  - Body: `{ "agent": { "name": "Forge-ops" } }` or `{ "agent": { "spec": { ...manifest } } }`
 - **Stream turns**: `POST /api/v1/sessions/:id/turns/stream`
   - Body: `{ "input": [{ "type": "user.message", "content": "<text>" }] }`
   - First event: `turn.created`

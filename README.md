@@ -63,7 +63,7 @@ OUTBOUND_URL_ALLOWED_HOSTS='["localhost","127.0.0.1"]' npx @truefoundry/trueforg
 ```
 
 ### 3. Register Agent Definitions
-Register the committed agent manifests (`groundwork-main` and `groundwork-inline`):
+Register the committed agent manifests (`Forge-ops` and `groundwork-inline`):
 ```bash
 node --import ./scripts/register-loader.mjs scripts/register-agents.ts
 ```
