@@ -77,3 +77,41 @@ test('cancelled_is_not_retried', async () => {
   assert.strictEqual(res.status, 'cancelled');
   assert.strictEqual(callCount, 1);
 });
+
+test('rate_limit_waits_and_retries_same_model', async () => {
+  let calls = 0;
+  const waits: number[] = [];
+  const res = await runWithFallback(
+    ['m1', 'm2'],
+    async (): Promise<TurnResult> => {
+      calls++;
+      if (calls < 3) return { status: 'error', message: '429 rate limit. Please try again in 7.5s', sessionId: 's' };
+      return { status: 'completed', sessionId: 's' };
+    },
+    () => {},
+    async (ms) => {
+      waits.push(ms);
+    }
+  );
+  assert.strictEqual(res.model, 'm1');
+  assert.strictEqual(res.status, 'completed');
+  assert.deepStrictEqual(waits, [8000, 8000]);
+});
+
+test('rate_limit_gives_up_after_retries_then_falls_back', async () => {
+  let m1Calls = 0;
+  const res = await runWithFallback(
+    ['m1', 'm2'],
+    async (model): Promise<TurnResult> => {
+      if (model === 'm1') {
+        m1Calls++;
+        return { status: 'error', message: '429 too many requests', sessionId: 's' };
+      }
+      return { status: 'completed', sessionId: 's' };
+    },
+    () => {},
+    async () => {}
+  );
+  assert.strictEqual(m1Calls, 4); // initial + 3 waits
+  assert.strictEqual(res.model, 'm2');
+});
