@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 *.key
+config/models.yaml
 .venv/
 __pycache__/
 *.pyc

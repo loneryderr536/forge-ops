@@ -8,7 +8,7 @@ export async function registerMcpServer(
     manifest: {
       type: 'remote',
       name,
-      description: 'Groundwork VS Code editor tools (read, search, rank, edit, run).',
+      description: 'Forge-ops VS Code editor tools (read, search, rank, edit, run).',
       url,
       auth: { type: 'header', headers: { Authorization: `Bearer ${token}` } },
     },

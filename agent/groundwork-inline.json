@@ -3,7 +3,7 @@
   "description": "Edits only the user's selected region.",
   "manifest": {
     "model": {
-      "name": "groq/llama-3-1-8b-instant",
+      "name": "groq/qwen3-8-27b",
       "params": {
         "temperature": 0.1,
         "max_tokens": 2048

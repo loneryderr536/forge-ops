@@ -33,11 +33,11 @@ export async function activate(context: vscode.ExtensionContext) {
   reviewUi.register(context, () => review);
   const meter = new ContextMeter(25000);
 
-  const config = vscode.workspace.getConfiguration('groundwork');
+  const config = vscode.workspace.getConfiguration('forge-ops');
   const trueforgeUrl = config.get<string>('trueforgeUrl') || 'http://localhost:8790';
   let models = config.get<string[]>('models') || [
-    'google-gemini/gemini-2-5-flash',
-    'groq/llama-3-3-70b-versatile',
+    'groq/qwen3-8-27b',
+    'google-gemini/gemini-3-5-flash',
     'ollama/qwen2-5-coder-7b',
   ];
 
@@ -99,7 +99,7 @@ export async function activate(context: vscode.ExtensionContext) {
   } catch (err: any) {
     console.warn('MCP Server initialization error:', err.message);
     vscode.window.showWarningMessage(
-      `Groundwork: could not register its tool server with TrueForge at ${trueforgeUrl} (${err.message}). Start TrueForge, then reload the window.`
+      `Forge-ops: could not register its tool server with TrueForge at ${trueforgeUrl} (${err.message}). Start TrueForge, then reload the window.`
     );
   }
 
@@ -140,7 +140,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (req.toolName === 'run_command') {
           const cmd = String(req.args.cmd || '');
           const choice = await vscode.window.showWarningMessage(
-            `Groundwork wants to run command: ${cmd}`,
+            `Forge-ops wants to run command: ${cmd}`,
             { modal: false },
             'Allow',
             'Deny'
@@ -195,7 +195,7 @@ export async function activate(context: vscode.ExtensionContext) {
         level: 'error',
         text: `Error: ${result.message || 'Run failed'}. No files were changed.`,
       });
-      vscode.window.showErrorMessage(`Groundwork task failed: ${result.message}`);
+      vscode.window.showErrorMessage(`Forge-ops task failed: ${result.message}`);
     }
   }
 
@@ -245,11 +245,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register VS Code Commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('groundwork.newTask', async () => {
-      await vscode.commands.executeCommand('groundwork.panel.focus');
+    vscode.commands.registerCommand('forge-ops.newTask', async () => {
+      await vscode.commands.executeCommand('forge-ops.panel.focus');
     }),
 
-    vscode.commands.registerCommand('groundwork.inlineEdit', async () => {
+    vscode.commands.registerCommand('forge-ops.inlineEdit', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || editor.selection.isEmpty) {
         vscode.window.showWarningMessage('Please select a region of code for inline edit.');
@@ -277,7 +277,7 @@ export async function activate(context: vscode.ExtensionContext) {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: 'Groundwork: Applying inline edit...',
+          title: 'Forge-ops: Applying inline edit...',
           cancellable: true,
         },
         async (_, progressToken) => {
@@ -301,10 +301,10 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }),
 
-    vscode.commands.registerCommand('groundwork.stop', stopCurrentTask),
-    vscode.commands.registerCommand('groundwork.undoRun', undoLastRun),
+    vscode.commands.registerCommand('forge-ops.stop', stopCurrentTask),
+    vscode.commands.registerCommand('forge-ops.undoRun', undoLastRun),
 
-    vscode.commands.registerCommand('groundwork.selectModel', async () => {
+    vscode.commands.registerCommand('forge-ops.selectModel', async () => {
       const picked = await vscode.window.showQuickPick(models, {
         placeHolder: 'Select primary model (others remain as fallback)',
       });
@@ -314,7 +314,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.commands.registerCommand('groundwork.showSession', async () => {
+    vscode.commands.registerCommand('forge-ops.showSession', async () => {
       if (!currentSessionId) {
         vscode.window.showInformationMessage('No active TrueForge session yet.');
         return;
@@ -324,7 +324,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.env.openExternal(vscode.Uri.parse(trueforgeUrl));
     }),
 
-    vscode.commands.registerCommand('groundwork.ping', async () => {
+    vscode.commands.registerCommand('forge-ops.ping', async () => {
       try {
         const spec = loadAgentSpec('Forge-ops');
         vscode.window.showInformationMessage(`TrueForge Agent Spec Loaded: ${spec.model?.name}`);

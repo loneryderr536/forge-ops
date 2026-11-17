@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export class AgentPanelProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'groundwork.panel';
+  public static readonly viewType = 'forge-ops.panel';
   private _view?: vscode.WebviewView;
   private _messageHandler?: (msg: any) => void;
   private _extensionUri: vscode.Uri;
@@ -63,7 +63,7 @@ export class AgentPanelProvider implements vscode.WebviewViewProvider {
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
     const htmlPath = path.join(this._extensionUri.fsPath, 'media', 'panel.html');
-    let html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf-8') : '<h1>Groundwork</h1>';
+    let html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf-8') : '<h1>Forge-ops</h1>';
 
     const cssUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, 'media', 'panel.css')

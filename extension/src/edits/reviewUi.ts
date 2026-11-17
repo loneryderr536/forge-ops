@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import type { ProposedEdit } from '../types';
 import type { ReviewController } from './review';
 
-const SCHEME = 'groundwork-proposed';
+const SCHEME = 'forge-ops-proposed';
 
 /**
  * Editor-side per-hunk review: red line decorations for removed lines, a hover
@@ -31,24 +31,24 @@ export class ReviewUi implements vscode.CodeLensProvider, vscode.TextDocumentCon
     context.subscriptions.push(
       vscode.languages.registerCodeLensProvider({ scheme: 'file' }, this),
       vscode.workspace.registerTextDocumentContentProvider(SCHEME, this),
-      vscode.commands.registerCommand('groundwork.review.toggle', (key: string, hunkId: string, accept: boolean) => {
+      vscode.commands.registerCommand('forge-ops.review.toggle', (key: string, hunkId: string, accept: boolean) => {
         controllerRef().setHunkDecision(key, hunkId, accept);
         this.refresh();
       }),
-      vscode.commands.registerCommand('groundwork.review.finish', (key: string) => {
+      vscode.commands.registerCommand('forge-ops.review.finish', (key: string) => {
         controllerRef().completeReview(key);
         this.drop(key);
       }),
-      vscode.commands.registerCommand('groundwork.review.rejectAll', (key: string) => {
+      vscode.commands.registerCommand('forge-ops.review.rejectAll', (key: string) => {
         controllerRef().rejectReview(key);
         this.drop(key);
       }),
-      vscode.commands.registerCommand('groundwork.review.diff', async (key: string) => {
+      vscode.commands.registerCommand('forge-ops.review.diff', async (key: string) => {
         const item = this.active.get(key);
         if (!item) return;
         const left = vscode.Uri.file(this.abs(item.edit.path));
         const right = vscode.Uri.parse(`${SCHEME}:/${item.edit.path}?key=${key}`);
-        await vscode.commands.executeCommand('vscode.diff', left, right, `Groundwork: ${item.edit.path} (proposed)`);
+        await vscode.commands.executeCommand('vscode.diff', left, right, `Forge-ops: ${item.edit.path} (proposed)`);
       }),
       this.removedDeco,
       this.addedDeco,
@@ -62,7 +62,7 @@ export class ReviewUi implements vscode.CodeLensProvider, vscode.TextDocumentCon
     await vscode.window.showTextDocument(doc, { preview: false });
     this.refresh();
     vscode.window.setStatusBarMessage(
-      `Groundwork: review ${edit.hunks.length} hunk(s) in ${edit.path} — use the CodeLens above the code.`,
+      `Forge-ops: review ${edit.hunks.length} hunk(s) in ${edit.path} — use the CodeLens above the code.`,
       8000
     );
   }
@@ -133,9 +133,9 @@ export class ReviewUi implements vscode.CodeLensProvider, vscode.TextDocumentCon
       const acceptedCount = edit.hunks.filter((h) => decisions?.get(h.id) !== false).length;
       const top = new vscode.Range(this.anchor(doc, edit.hunks[0]?.oldStart ?? 1), 0, this.anchor(doc, edit.hunks[0]?.oldStart ?? 1), 0);
       lenses.push(
-        new vscode.CodeLens(top, { title: `$(check-all) Apply ${acceptedCount}/${edit.hunks.length} hunk(s)`, command: 'groundwork.review.finish', arguments: [key] }),
-        new vscode.CodeLens(top, { title: '$(close-all) Reject all', command: 'groundwork.review.rejectAll', arguments: [key] }),
-        new vscode.CodeLens(top, { title: '$(diff) View diff', command: 'groundwork.review.diff', arguments: [key] }),
+        new vscode.CodeLens(top, { title: `$(check-all) Apply ${acceptedCount}/${edit.hunks.length} hunk(s)`, command: 'forge-ops.review.finish', arguments: [key] }),
+        new vscode.CodeLens(top, { title: '$(close-all) Reject all', command: 'forge-ops.review.rejectAll', arguments: [key] }),
+        new vscode.CodeLens(top, { title: '$(diff) View diff', command: 'forge-ops.review.diff', arguments: [key] }),
       );
       for (const h of edit.hunks) {
         const r = new vscode.Range(this.anchor(doc, h.oldStart), 0, this.anchor(doc, h.oldStart), 0);
@@ -143,12 +143,12 @@ export class ReviewUi implements vscode.CodeLensProvider, vscode.TextDocumentCon
         lenses.push(
           new vscode.CodeLens(r, {
             title: accepted ? '✓ Accept (selected)' : '✓ Accept',
-            command: 'groundwork.review.toggle',
+            command: 'forge-ops.review.toggle',
             arguments: [key, h.id, true],
           }),
           new vscode.CodeLens(r, {
             title: accepted ? '✗ Reject' : '✗ Reject (selected)',
-            command: 'groundwork.review.toggle',
+            command: 'forge-ops.review.toggle',
             arguments: [key, h.id, false],
           }),
         );

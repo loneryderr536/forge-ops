@@ -149,7 +149,7 @@ export class ForgeClient {
             try {
               decision = await h.onApproval(req);
             } catch (err: any) {
-              console.error('Groundwork approval handler failed:', err);
+              console.error('Forge-ops approval handler failed:', err);
               decision = { status: 'deny', reason: `approval handler error: ${err?.message ?? err}` };
             }
             await this.sendApprovalDecision(sessionId, state.turnId, req, decision);

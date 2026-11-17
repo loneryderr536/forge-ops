@@ -3,7 +3,7 @@
   "description": "Editor-native coding agent: evidence-based retrieval, reviewed multi-file edits, tests.",
   "manifest": {
     "model": {
-      "name": "google-gemini/gemini-2-5-flash",
+      "name": "groq/qwen3-8-27b",
       "params": {
         "temperature": 0.2,
         "max_tokens": 4096

@@ -1,9 +1,9 @@
 {
-  "name": "groundwork",
-  "displayName": "Groundwork",
+  "name": "forge-ops",
+  "displayName": "Forge-ops",
   "description": "Evidence-based, reviewed VS Code coding agent client for TrueForge.",
   "version": "0.1.0",
-  "publisher": "groundwork-team",
+  "publisher": "forge-ops-team",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -14,83 +14,83 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onView:groundwork.panel",
-    "onCommand:groundwork.inlineEdit",
-    "onCommand:groundwork.newTask"
+    "onView:forge-ops.panel",
+    "onCommand:forge-ops.inlineEdit",
+    "onCommand:forge-ops.newTask"
   ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "groundwork",
-          "title": "Groundwork",
+          "id": "forge-ops",
+          "title": "Forge-ops",
           "icon": "media/icon.svg"
         }
       ]
     },
     "views": {
-      "groundwork": [
+      "forge-ops": [
         {
           "type": "webview",
-          "id": "groundwork.panel",
-          "name": "Groundwork Agent"
+          "id": "forge-ops.panel",
+          "name": "Forge-ops Agent"
         }
       ]
     },
     "commands": [
       {
-        "command": "groundwork.newTask",
-        "title": "Groundwork: New Task"
+        "command": "forge-ops.newTask",
+        "title": "Forge-ops: New Task"
       },
       {
-        "command": "groundwork.inlineEdit",
-        "title": "Groundwork: Inline Edit"
+        "command": "forge-ops.inlineEdit",
+        "title": "Forge-ops: Inline Edit"
       },
       {
-        "command": "groundwork.stop",
-        "title": "Groundwork: Stop Run"
+        "command": "forge-ops.stop",
+        "title": "Forge-ops: Stop Run"
       },
       {
-        "command": "groundwork.undoRun",
-        "title": "Groundwork: Undo Last Run"
+        "command": "forge-ops.undoRun",
+        "title": "Forge-ops: Undo Last Run"
       },
       {
-        "command": "groundwork.selectModel",
-        "title": "Groundwork: Select Model"
+        "command": "forge-ops.selectModel",
+        "title": "Forge-ops: Select Model"
       },
       {
-        "command": "groundwork.showSession",
-        "title": "Groundwork: Show TrueForge Session"
+        "command": "forge-ops.showSession",
+        "title": "Forge-ops: Show TrueForge Session"
       },
       {
-        "command": "groundwork.ping",
-        "title": "Groundwork: Ping TrueForge"
+        "command": "forge-ops.ping",
+        "title": "Forge-ops: Ping TrueForge"
       }
     ],
     "keybindings": [
       {
-        "command": "groundwork.inlineEdit",
+        "command": "forge-ops.inlineEdit",
         "key": "ctrl+alt+k",
         "mac": "cmd+alt+k",
         "when": "editorHasSelection"
       }
     ],
     "configuration": {
-      "title": "Groundwork",
+      "title": "Forge-ops",
       "properties": {
-        "groundwork.trueforgeUrl": {
+        "forge-ops.trueforgeUrl": {
           "type": "string",
           "default": "http://localhost:8790",
           "description": "Base URL for the local TrueForge agent server."
         },
-        "groundwork.models": {
+        "forge-ops.models": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [
-            "google-gemini/gemini-2-5-flash",
-            "groq/llama-3-3-70b-versatile",
+            "groq/qwen3-8-27b",
+            "google-gemini/gemini-3-5-flash",
             "ollama/qwen2-5-coder-7b"
           ],
           "description": "Configured models list (primary first, followed by fallback options)."

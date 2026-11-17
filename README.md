@@ -59,7 +59,7 @@ npx @truefoundry/trueforge@latest
 set -a; source config/trueforge.env; set +a
 node --import ./scripts/register-loader.mjs scripts/register-agents.ts
 ```
-Model names are TrueForge FQNs (`provider/model`): `google-gemini/gemini-2-5-flash`, `groq/llama-3-3-70b-versatile`, `ollama/qwen2-5-coder-7b`. Check them with `curl localhost:8790/api/v1/models`.
+Model names are TrueForge FQNs (`provider/model`): `google-gemini/gemini-3-5-flash`, `groq/qwen3-8-27b`, `ollama/qwen2-5-coder-7b`. Check them with `curl localhost:8790/api/v1/models`.
 
 ### 4. Build and Run Extension
 ```bash
