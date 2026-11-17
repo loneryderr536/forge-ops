@@ -24,7 +24,7 @@ export async function registerAgents(baseUrl = 'http://localhost:8790'): Promise
   const inlineSpec = loadAgentSpec('groundwork-inline');
 
   const payloadMain = {
-    name: 'Forge-ops',
+    name: 'forge-ops',
     description: 'Editor-native coding agent: evidence-based retrieval, reviewed multi-file edits, tests.',
     manifest: mainSpec
   };
@@ -54,6 +54,69 @@ export async function registerAgents(baseUrl = 'http://localhost:8790'): Promise
   }
 }
 
+type ProviderManifest = Record<string, unknown>;
+
+function providerManifests(env: NodeJS.ProcessEnv): { label: string; manifest: ProviderManifest }[] {
+  const out: { label: string; manifest: ProviderManifest }[] = [];
+  if (env.GEMINI_API_KEY) {
+    out.push({
+      label: 'google-gemini',
+      manifest: {
+        type: 'google-gemini',
+        auth: { api_key: env.GEMINI_API_KEY },
+        models: [{ model_id: 'gemini-2.5-flash', name: 'gemini-2-5-flash', properties: { context_length: 1000000, max_output_tokens: 8192 } }],
+      },
+    });
+  }
+  if (env.GROQ_API_KEY) {
+    out.push({
+      label: 'groq',
+      manifest: {
+        type: 'custom',
+        name: 'groq',
+        base_url: 'https://api.groq.com/openai/v1',
+        auth: { api_key: env.GROQ_API_KEY },
+        models: [
+          { model_id: 'llama-3.3-70b-versatile', name: 'llama-3-3-70b-versatile', properties: { context_length: 128000, max_output_tokens: 8192 } },
+          { model_id: 'llama-3.1-8b-instant', name: 'llama-3-1-8b-instant', properties: { context_length: 128000, max_output_tokens: 8192 } },
+        ],
+      },
+    });
+  }
+  if (env.OLLAMA_BASE_URL) {
+    out.push({
+      label: 'ollama',
+      manifest: {
+        type: 'custom',
+        name: 'ollama',
+        base_url: env.OLLAMA_BASE_URL,
+        auth: { api_key: 'ollama' },
+        models: [{ model_id: 'qwen2.5-coder:7b', name: 'qwen2-5-coder-7b', properties: { context_length: 32768, max_output_tokens: 4096 } }],
+      },
+    });
+  }
+  return out;
+}
+
+export async function registerProviders(baseUrl = 'http://localhost:8790', env = process.env): Promise<void> {
+  const providers = providerManifests(env);
+  if (providers.length === 0) {
+    console.warn('No GEMINI_API_KEY / GROQ_API_KEY / OLLAMA_BASE_URL in the environment: no model providers registered.');
+  }
+  for (const { label, manifest } of providers) {
+    try {
+      const body = JSON.stringify({ manifest });
+      const headers = { 'Content-Type': 'application/json' };
+      let res = await fetch(`${baseUrl}/api/v1/settings/model-providers`, { method: 'PUT', headers, body });
+      if (!res.ok) res = await fetch(`${baseUrl}/api/v1/settings/model-providers`, { method: 'POST', headers, body });
+      if (res.ok) console.log(`Model provider ${label} registered`);
+      else console.warn(`Model provider ${label} failed: ${res.status} ${await res.text()}`);
+    } catch (err: any) {
+      console.warn(`Could not reach TrueForge at ${baseUrl}: ${err.message}`);
+    }
+  }
+}
+
 if (process.argv[1] && process.argv[1].endsWith('register-agents.ts')) {
-  registerAgents().then(() => console.log('Done registering agents.'));
+  registerProviders().then(() => registerAgents()).then(() => console.log('Done registering providers and agents.'));
 }

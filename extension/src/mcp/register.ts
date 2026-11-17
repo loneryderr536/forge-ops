@@ -5,11 +5,12 @@ export async function registerMcpServer(
   token: string
 ): Promise<void> {
   const payload = JSON.stringify({
-    name,
-    type: 'remote',
-    url,
-    headers: {
-      Authorization: `Bearer ${token}`,
+    manifest: {
+      type: 'remote',
+      name,
+      description: 'Groundwork VS Code editor tools (read, search, rank, edit, run).',
+      url,
+      auth: { type: 'header', headers: { Authorization: `Bearer ${token}` } },
     },
   });
   const endpoint = `${baseUrl.replace(/\/+$/, '')}/api/v1/settings/mcp-servers`;

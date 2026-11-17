@@ -6,27 +6,29 @@ This document records the exact wire formats, statuses, and runtime behaviors fo
 
 Remote MCP server registration with TrueForge:
 
-- **Endpoint**: `PUT /api/v1/settings/mcp-servers`
-- **Headers**:
-  - `Content-Type: application/json`
-  - `Authorization: Bearer <token>`
-- **Request Body**:
+- **Endpoint**: `PUT /api/v1/settings/mcp-servers` (verified against TrueForge 0.185.1)
+- **Request Body** (`name` must match `^[a-z][a-z0-9-]*[a-z0-9]$`):
 ```json
 {
-  "name": "groundwork-editor",
-  "type": "remote",
-  "url": "http://127.0.0.1:<port>/mcp",
-  "headers": {
-    "Authorization": "Bearer <token>"
+  "manifest": {
+    "type": "remote",
+    "name": "groundwork-editor",
+    "description": "...",
+    "url": "http://127.0.0.1:<port>/mcp",
+    "auth": { "type": "header", "headers": { "Authorization": "Bearer <token>" } }
   }
 }
 ```
 
+## 1b. Model providers
+`PUT /api/v1/settings/model-providers` with `{ "manifest": { "type": "google-gemini" | "custom", "name"?, "base_url"?, "auth": { "api_key" }, "models": [{ "model_id", "name", "properties" }] } }`.
+Agent model names are `provider/model` using the registered `name` (lowercase, hyphens), e.g. `google-gemini/gemini-2-5-flash`.
+
 ## 2. Session and Turn Lifecycle
 
-- **Create session**: `POST /api/v1/sessions`
+- **Create session**: `POST /api/v1/sessions` (response: `{ data: { id } }`)
   - Body: `{ "agent": { "name": "Forge-ops" } }` or `{ "agent": { "spec": { ...manifest } } }`
-- **Stream turns**: `POST /api/v1/sessions/:id/turns/stream`
+- **Stream turns**: `POST /api/v1/sessions/:id/turns` (`stream: true` is the default)
   - Body: `{ "input": [{ "type": "user.message", "content": "<text>" }] }`
   - First event: `turn.created`
   - Event deltas: `model.message.delta` with `isEventDelta` / `mergeEventDelta`
@@ -48,8 +50,8 @@ When a tool requires approval (e.g. `edit_file`, `run_command`):
    ```
 2. The client looks up `source_event_id` in its event index to find tool name and arguments.
 3. The turn pauses.
-4. Client creates subscription from `afterEventId`:
-   `GET /api/v1/sessions/:id/turns/:turnId/stream?afterEventId=<id>`
+4. The stream stays open and emits `turn.update` with `state.status: "paused"`. If it closes, resume with:
+   `GET /api/v1/sessions/:id/turns/:turnId/subscribe?after_event_id=<id>`
 5. Client posts decision:
    `POST /api/v1/sessions/:id/turns/:turnId/events`
    ```json
@@ -57,8 +59,8 @@ When a tool requires approval (e.g. `edit_file`, `run_command`):
      "events": [
        {
          "type": "user.tool_approval",
-         "threadId": "<threadId>",
-         "toolCallId": "<callId>",
+         "thread_id": "<threadId>",
+         "tool_call_id": "<callId>",
          "approval": {
            "status": "allow" // or "deny"
          }

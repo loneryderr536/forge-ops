@@ -5,11 +5,35 @@ export function routeEvent(
   ev: any,
   h: TurnHandlers
 ): { approvals?: ApprovalRequest[]; done?: Omit<TurnResult, 'sessionId'> } {
-  if (ev.id) {
+  const type = ev.type || '';
+
+  // Deltas share the id of their model.message; never overwrite the message
+  // with a delta. Tool-call fragments (id/name first, arguments streamed
+  // after) are accumulated onto the indexed message instead.
+  if (type === 'model.message.delta') {
+    if (ev.id && Array.isArray(ev.tool_calls) && ev.tool_calls.length > 0) {
+      const base = index.get(ev.id) ?? { id: ev.id, type: 'model.message' };
+      const acc: any[] = Array.isArray(base.tool_calls) ? [...base.tool_calls] : [];
+      for (const frag of ev.tool_calls) {
+        const i = frag.index ?? 0;
+        const cur = acc[i] ?? (acc[i] = { id: '', function: { name: '', arguments: '' } });
+        if (frag.id) cur.id = frag.id;
+        if (frag.function?.name) cur.function.name += frag.function.name;
+        if (typeof frag.function?.arguments === 'string') cur.function.arguments += frag.function.arguments;
+      }
+      index.set(ev.id, { ...base, tool_calls: acc });
+    }
+    if (ev.id && ev.finish_reason === 'tool_calls') {
+      const threadId = ev.thread_id || ev.threadId || 'root';
+      for (const call of index.get(ev.id)?.tool_calls ?? []) {
+        let args: any = call.function.arguments;
+        try { args = JSON.parse(args); } catch { /* keep raw */ }
+        h.onToolCall(call.function.name, args, threadId);
+      }
+    }
+  } else if (ev.id) {
     index.set(ev.id, ev);
   }
-
-  const type = ev.type || '';
 
   // 1. Streaming text deltas
   if (type === 'model.message.delta') {
@@ -104,6 +128,11 @@ export function routeEvent(
   // 6. Turn completion
   if (type === 'turn.done') {
     const status = ev.state?.status || ev.status;
+    // A paused turn (or one with pending required_actions) is waiting for the
+    // client, e.g. a tool approval. It is not finished: the caller must resume.
+    if (status === 'paused' || (Array.isArray(ev.state?.required_actions) && ev.state.required_actions.length > 0)) {
+      return {};
+    }
     if (status === 'error') {
       return {
         done: {

@@ -44,35 +44,22 @@ Groundwork is an editor-native coding extension for VS Code that operates as a c
 - Python 3.10+
 - Git
 
-### 2. Configure TrueForge & Models
-Copy the example environment and model configuration files:
+### 2. Configure keys
 ```bash
 cp config/trueforge.env.example config/trueforge.env
-cp config/models.example.yaml config/models.yaml
 ```
+Edit `config/trueforge.env` and set `GEMINI_API_KEY` (Google AI Studio free tier) and `GROQ_API_KEY` (Groq free tier). `OLLAMA_BASE_URL` enables a local Ollama fallback (`ollama pull qwen2.5-coder:7b`). `config/trueforge.env` holds real keys: do not commit it (add it to `.gitignore` if it is not covered).
 
-Set your model provider API keys in `config/trueforge.env` or in your local shell (Free Tier APIs or Local):
+### 3. Start TrueForge, then register providers and agents
+TrueForge has no `models.yaml`: model providers are registered through its API. The script below does it from your env keys (terminal 1 runs TrueForge, terminal 2 runs the script):
 ```bash
-# 1. Google Gemini (Free tier from Google AI Studio)
-export GEMINI_API_KEY="your-gemini-api-key"
-
-# 2. Groq (Free tier from Groq Cloud)
-export GROQ_API_KEY="your-groq-api-key"
-
-# 3. Local Ollama (100% free and offline, no API key needed)
-# ollama run qwen2.5-coder:7b
+npx @truefoundry/trueforge@latest
 ```
-
-Start the local TrueForge instance:
 ```bash
-OUTBOUND_URL_ALLOWED_HOSTS='["localhost","127.0.0.1"]' npx @truefoundry/trueforge@latest
-```
-
-### 3. Register Agent Definitions
-Register the committed agent manifests (`Forge-ops` and `groundwork-inline`):
-```bash
+set -a; source config/trueforge.env; set +a
 node --import ./scripts/register-loader.mjs scripts/register-agents.ts
 ```
+Model names are TrueForge FQNs (`provider/model`): `google-gemini/gemini-2-5-flash`, `groq/llama-3-3-70b-versatile`, `ollama/qwen2-5-coder-7b`. Check them with `curl localhost:8790/api/v1/models`.
 
 ### 4. Build and Run Extension
 ```bash

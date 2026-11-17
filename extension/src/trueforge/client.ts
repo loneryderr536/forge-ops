@@ -22,8 +22,11 @@ export class ForgeClient {
       throw new Error(`Failed to create session (${res.status}): ${errText}`);
     }
 
-    const data = await res.json() as any;
-    return data.id || data.session_id || data.sessionId;
+    const body = await res.json() as any;
+    const data = body?.data ?? body;
+    const id = data?.id || data?.session_id || data?.sessionId;
+    if (!id) throw new Error(`TrueForge session response had no id: ${JSON.stringify(body).slice(0, 200)}`);
+    return id;
   }
 
   async runTurn(
@@ -50,10 +53,10 @@ export class ForgeClient {
     }, firstEventTimeoutMs);
 
     try {
-      let res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns/stream`, {
+      let res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-        body: JSON.stringify({ input: [{ type: 'user.message', content: input }] }),
+        body: JSON.stringify({ input: [{ type: 'user.message', content: input }], stream: true }),
         signal: controller.signal,
       });
 
@@ -80,8 +83,8 @@ export class ForgeClient {
         }
         if (!state.turnId) return { status: 'completed', sessionId };
 
-        const q = state.lastEventId ? `?afterEventId=${encodeURIComponent(state.lastEventId)}` : '';
-        res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns/${state.turnId}/stream${q}`, {
+        const q = state.lastEventId ? `?after_event_id=${encodeURIComponent(state.lastEventId)}` : '';
+        res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns/${state.turnId}/subscribe${q}`, {
           headers: { Accept: 'text/event-stream' },
           signal: controller.signal,
         });
@@ -170,8 +173,8 @@ export class ForgeClient {
       events: [
         {
           type: 'user.tool_approval',
-          threadId: req.threadId,
-          toolCallId: req.toolCallId,
+          thread_id: req.threadId,
+          tool_call_id: req.toolCallId,
           approval: {
             status: decision.status,
             reason: decision.status === 'deny' ? decision.reason : undefined,

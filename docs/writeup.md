@@ -30,9 +30,9 @@ Rather than consuming thousands of tokens reading full files or relying on black
 
 ## 5. Model Setup & Resilience
 - Configured with free and open-source models:
-  - **Google Gemini** (`gemini/gemini-2.5-flash`): Primary high-speed reasoning model utilizing the free tier via Google AI Studio.
-  - **Groq Cloud** (`groq/llama-3.3-70b-versatile` & `groq/llama-3.1-8b-instant`): Free tier inference for fallback and fast inline edits.
-  - **Local Ollama** (`ollama/qwen2.5-coder:7b`): 100% offline, local, and free via OpenAI-compatible endpoint (`http://localhost:11434/v1`).
+  - **Google Gemini** (`google-gemini/gemini-2-5-flash`): Primary high-speed reasoning model utilizing the free tier via Google AI Studio.
+  - **Groq Cloud** (`groq/llama-3-3-70b-versatile` & `groq/llama-3-1-8b-instant`): Free tier inference for fallback and fast inline edits.
+  - **Local Ollama** (`ollama/qwen2-5-coder-7b`): 100% offline, local, and free via OpenAI-compatible endpoint (`http://localhost:11434/v1`).
 - API credentials reside strictly in TrueForge's runtime environment, never in workspace files.
 - Automatic fallback: transient errors (5xx, 429, timeout) trigger one 1.5s retry before transparently switching to the fallback model. Authentication or connection failures switch immediately. Workspace state is preserved clean throughout.
 

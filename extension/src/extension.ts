@@ -36,9 +36,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration('groundwork');
   const trueforgeUrl = config.get<string>('trueforgeUrl') || 'http://localhost:8790';
   let models = config.get<string[]>('models') || [
-    'gemini/gemini-2.5-flash',
-    'groq/llama-3.3-70b-versatile',
-    'ollama/qwen2.5-coder:7b',
+    'google-gemini/gemini-2-5-flash',
+    'groq/llama-3-3-70b-versatile',
+    'ollama/qwen2-5-coder-7b',
   ];
 
   const client = new ForgeClient(trueforgeUrl);

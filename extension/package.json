@@ -89,9 +89,9 @@
             "type": "string"
           },
           "default": [
-            "gemini/gemini-2.5-flash",
-            "groq/llama-3.3-70b-versatile",
-            "ollama/qwen2.5-coder:7b"
+            "google-gemini/gemini-2-5-flash",
+            "groq/llama-3-3-70b-versatile",
+            "ollama/qwen2-5-coder-7b"
           ],
           "description": "Configured models list (primary first, followed by fallback options)."
         }

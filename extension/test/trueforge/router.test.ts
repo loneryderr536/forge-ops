@@ -95,3 +95,23 @@ test('routes_subagent_thread_events', () => {
   assert.deepStrictEqual(threads[0], { kind: 'created', threadId: 'sub-1', status: 'running' });
   assert.deepStrictEqual(threads[1], { kind: 'done', threadId: 'sub-1', status: 'success' });
 });
+
+test('routes_streamed_tool_call_fragments_into_approval', () => {
+  const index = new Map<string, any>();
+  const calls: Array<[string, unknown]> = [];
+  const h: any = { onText() {}, onToolCall: (n: string, a: unknown) => calls.push([n, a]), onToolResult() {}, onThread() {}, onApproval() {} };
+  routeEvent(index, { type: 'model.message', id: 'm1', thread_id: 'main' }, h);
+  routeEvent(index, { type: 'model.message.delta', id: 'm1', thread_id: 'main', tool_calls: [{ index: 0, id: 'c1', function: { name: 'edit_file', arguments: '' } }] }, h);
+  routeEvent(index, { type: 'model.message.delta', id: 'm1', thread_id: 'main', tool_calls: [{ index: 0, function: { arguments: '{"path":"a.py"}' } }] }, h);
+  routeEvent(index, { type: 'model.message.delta', id: 'm1', thread_id: 'main', finish_reason: 'tool_calls' }, h);
+  const r = routeEvent(index, { type: 'tool.approval_required', id: 'a1', thread_id: 'main', tool_calls: [{ id: 'c1', source_event_id: 'm1' }] }, h);
+  assert.deepEqual(calls, [['edit_file', { path: 'a.py' }]]);
+  assert.equal(r.approvals?.[0].toolName, 'edit_file');
+  assert.deepEqual(r.approvals?.[0].args, { path: 'a.py' });
+  assert.equal(r.approvals?.[0].threadId, 'main');
+});
+
+test('paused_turn_update_or_done_is_not_terminal', () => {
+  const h: any = { onText() {}, onToolCall() {}, onToolResult() {}, onThread() {}, onApproval() {} };
+  assert.deepEqual(routeEvent(new Map(), { type: 'turn.done', state: { status: 'paused' } }, h), {});
+});
