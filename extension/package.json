@@ -1,0 +1,116 @@
+{
+  "name": "groundwork",
+  "displayName": "Groundwork",
+  "description": "Evidence-based, reviewed VS Code coding agent client for TrueForge.",
+  "version": "0.1.0",
+  "publisher": "groundwork-team",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onView:groundwork.panel",
+    "onCommand:groundwork.inlineEdit",
+    "onCommand:groundwork.newTask"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "groundwork",
+          "title": "Groundwork",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "groundwork": [
+        {
+          "type": "webview",
+          "id": "groundwork.panel",
+          "name": "Groundwork Agent"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "groundwork.newTask",
+        "title": "Groundwork: New Task"
+      },
+      {
+        "command": "groundwork.inlineEdit",
+        "title": "Groundwork: Inline Edit"
+      },
+      {
+        "command": "groundwork.stop",
+        "title": "Groundwork: Stop Run"
+      },
+      {
+        "command": "groundwork.undoRun",
+        "title": "Groundwork: Undo Last Run"
+      },
+      {
+        "command": "groundwork.selectModel",
+        "title": "Groundwork: Select Model"
+      },
+      {
+        "command": "groundwork.showSession",
+        "title": "Groundwork: Show TrueForge Session"
+      },
+      {
+        "command": "groundwork.ping",
+        "title": "Groundwork: Ping TrueForge"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "groundwork.inlineEdit",
+        "key": "ctrl+alt+k",
+        "mac": "cmd+alt+k",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "Groundwork",
+      "properties": {
+        "groundwork.trueforgeUrl": {
+          "type": "string",
+          "default": "http://localhost:8790",
+          "description": "Base URL for the local TrueForge agent server."
+        },
+        "groundwork.models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "anthropic/claude-3-7-sonnet",
+            "openai/gpt-4o"
+          ],
+          "description": "Configured models list (primary first, followed by fallback options)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "test": "node --test dist-test/**/*.test.js"
+  },
+  "dependencies": {
+    "diff": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.0",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0"
+  }
+}

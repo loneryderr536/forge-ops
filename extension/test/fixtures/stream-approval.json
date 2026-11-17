@@ -1,0 +1,25 @@
+[
+  { "id": "ev-1", "type": "turn.created", "turn_id": "turn-102" },
+  {
+    "id": "ev-2",
+    "type": "model.message",
+    "thread_id": "root",
+    "tool_calls": [
+      {
+        "id": "call-1",
+        "function": {
+          "name": "edit_file",
+          "arguments": "{\"path\":\"a.py\",\"old_string\":\"foo\",\"new_string\":\"bar\"}"
+        }
+      }
+    ]
+  },
+  {
+    "id": "ev-3",
+    "type": "tool.approval_required",
+    "thread_id": "root",
+    "tool_calls": [
+      { "id": "call-1", "source_event_id": "ev-2" }
+    ]
+  }
+]

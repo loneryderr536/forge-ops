@@ -1,0 +1,6 @@
+[
+  { "id": "ev-1", "type": "turn.created", "turn_id": "turn-101" },
+  { "id": "ev-2", "type": "model.message.delta", "delta": { "content": "Hello" } },
+  { "id": "ev-3", "type": "model.message.delta", "delta": { "content": " there!" } },
+  { "id": "ev-4", "type": "turn.done", "state": { "status": "completed" } }
+]

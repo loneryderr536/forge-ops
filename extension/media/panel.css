@@ -1,0 +1,113 @@
+body {
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-sideBar-background);
+  margin: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+#meter {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+#banner {
+  display: none;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+#banner.info { background: var(--vscode-statusBarItem-warningBackground); color: #000; }
+#banner.warn { background: #d97706; color: #fff; }
+#banner.error { background: var(--vscode-inputValidation-errorBackground); color: #fff; }
+
+#chat-log {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-box {
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-widget-border);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.tool-row {
+  font-family: var(--vscode-editor-font-family);
+  font-size: 12px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  padding: 4px 8px;
+  border-radius: 3px;
+  margin: 2px 0;
+}
+
+.subagent-thread {
+  border-left: 2px solid var(--vscode-activityBar-activeBorder);
+  padding-left: 8px;
+  margin: 4px 0 4px 8px;
+}
+
+#input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#prompt-input {
+  width: 100%;
+  height: 60px;
+  resize: vertical;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.btn-row {
+  display: flex;
+  gap: 6px;
+}
+
+button {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
