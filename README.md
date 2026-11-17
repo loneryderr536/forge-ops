@@ -51,10 +51,16 @@ cp config/trueforge.env.example config/trueforge.env
 cp config/models.example.yaml config/models.yaml
 ```
 
-Set your model provider API keys in `config/trueforge.env` or in your local shell:
+Set your model provider API keys in `config/trueforge.env` or in your local shell (Free Tier APIs or Local):
 ```bash
-export ANTHROPIC_API_KEY="your-anthropic-key"
-export OPENAI_API_KEY="your-openai-key"
+# 1. Google Gemini (Free tier from Google AI Studio)
+export GEMINI_API_KEY="your-gemini-api-key"
+
+# 2. Groq (Free tier from Groq Cloud)
+export GROQ_API_KEY="your-groq-api-key"
+
+# 3. Local Ollama (100% free and offline, no API key needed)
+# ollama run qwen2.5-coder:7b
 ```
 
 Start the local TrueForge instance:

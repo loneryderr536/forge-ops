@@ -72,6 +72,10 @@ export class ReviewController {
     this.pending.clear();
   }
 
+  getDecisions(editKey: string): Map<string, boolean> | undefined {
+    return this.pending.get(editKey)?.decisionMap;
+  }
+
   getPending(editKey: string): ProposedEdit | undefined {
     return this.pending.get(editKey)?.edit;
   }

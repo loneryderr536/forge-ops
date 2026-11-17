@@ -30,127 +30,133 @@ export class ForgeClient {
     sessionId: string,
     input: string,
     h: TurnHandlers,
-    firstEventTimeoutMs = 20000
+    firstEventTimeoutMs = 20000,
+    externalSignal?: AbortSignal
   ): Promise<TurnResult> {
     const eventIndex = new Map<string, any>();
-    let turnId = '';
-    let lastEventId = '';
+    const state = { turnId: '', lastEventId: '' };
 
     const controller = new AbortController();
+    const onExternalAbort = () => controller.abort();
+    externalSignal?.addEventListener('abort', onExternalAbort, { once: true });
     let firstEventReceived = false;
+    let timedOut = false;
 
     const timeoutTimer = setTimeout(() => {
       if (!firstEventReceived) {
+        timedOut = true;
         controller.abort();
       }
     }, firstEventTimeoutMs);
 
     try {
-      const res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns/stream`, {
+      let res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
-        },
-        body: JSON.stringify({
-          input: [{ type: 'user.message', content: input }],
-        }),
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        body: JSON.stringify({ input: [{ type: 'user.message', content: input }] }),
         signal: controller.signal,
       });
 
-      if (!res.ok) {
-        clearTimeout(timeoutTimer);
-        const errText = await res.text();
-        return {
-          status: 'error',
-          message: `HTTP ${res.status}: ${errText}`,
-          sessionId,
-        };
+      // After a tool approval the server pauses the turn and the stream can close.
+      // Re-subscribe from the last event until the turn reaches a terminal event.
+      for (let resumes = 0; resumes < 200; resumes++) {
+        if (!res.ok) {
+          return { status: 'error', message: `HTTP ${res.status}: ${await res.text()}`, sessionId };
+        }
+        if (!res.body) {
+          return { status: 'error', message: 'Empty response body from TrueForge', sessionId };
+        }
+
+        const before = state.lastEventId;
+        const outcome = await this.consumeStream(res.body, sessionId, eventIndex, state, h, () => {
+          firstEventReceived = true;
+          clearTimeout(timeoutTimer);
+        });
+        if (outcome) return outcome;
+
+        // Stream ended with no terminal event. If nothing new arrived, stop.
+        if (resumes > 0 && state.lastEventId === before) {
+          return { status: 'completed', sessionId };
+        }
+        if (!state.turnId) return { status: 'completed', sessionId };
+
+        const q = state.lastEventId ? `?afterEventId=${encodeURIComponent(state.lastEventId)}` : '';
+        res = await fetch(`${this.baseUrl}/api/v1/sessions/${sessionId}/turns/${state.turnId}/stream${q}`, {
+          headers: { Accept: 'text/event-stream' },
+          signal: controller.signal,
+        });
       }
-
-      if (!res.body) {
-        clearTimeout(timeoutTimer);
-        return {
-          status: 'error',
-          message: 'Empty response body from TrueForge',
-          sessionId,
-        };
+      return { status: 'error', message: 'Turn did not finish (too many stream resumes)', sessionId };
+    } catch (err: any) {
+      if (externalSignal?.aborted) {
+        return { status: 'cancelled', sessionId };
       }
+      if (timedOut) {
+        return { status: 'error', message: 'no response from model within 20s', sessionId };
+      }
+      return { status: 'error', message: err.message || 'Stream connection error', sessionId };
+    } finally {
+      clearTimeout(timeoutTimer);
+      externalSignal?.removeEventListener('abort', onExternalAbort);
+    }
+  }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
+  private async consumeStream(
+    body: ReadableStream<Uint8Array>,
+    sessionId: string,
+    eventIndex: Map<string, any>,
+    state: { turnId: string; lastEventId: string },
+    h: TurnHandlers,
+    onFirstEvent: () => void
+  ): Promise<TurnResult | undefined> {
+    const reader = body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) return undefined;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split('\n\n');
+      buffer = blocks.pop() || '';
 
-        for (const block of lines) {
-          const trimmed = block.trim();
-          if (!trimmed) continue;
+      for (const block of blocks) {
+        for (const line of block.trim().split('\n')) {
+          if (!line.startsWith('data:')) continue;
+          onFirstEvent();
 
-          for (const line of trimmed.split('\n')) {
-            if (line.startsWith('data:')) {
-              firstEventReceived = true;
-              clearTimeout(timeoutTimer);
+          const rawJson = line.slice(5).trim();
+          if (rawJson === '[DONE]') return { status: 'completed', sessionId };
 
-              const rawJson = line.slice(5).trim();
-              if (rawJson === '[DONE]') {
-                return { status: 'completed', sessionId };
-              }
+          let ev: any;
+          try {
+            ev = JSON.parse(rawJson);
+          } catch {
+            continue; // malformed chunk
+          }
 
-              try {
-                const ev = JSON.parse(rawJson);
-                if (ev.turn_id || ev.turnId) {
-                  turnId = ev.turn_id || ev.turnId;
-                }
-                if (ev.id) {
-                  lastEventId = ev.id;
-                }
+          state.turnId = ev.turn_id || ev.turnId || ev.turn?.id || state.turnId;
+          if (ev.id) state.lastEventId = ev.id;
 
-                const routed = routeEvent(eventIndex, ev, h);
+          const routed = routeEvent(eventIndex, ev, h);
 
-                if (routed.approvals && routed.approvals.length > 0) {
-                  for (const req of routed.approvals) {
-                    const decision = await h.onApproval(req);
-                    await this.sendApprovalDecision(sessionId, turnId, req, decision);
-                  }
-                }
-
-                if (routed.done) {
-                  return {
-                    status: routed.done.status,
-                    message: routed.done.message,
-                    sessionId,
-                  };
-                }
-              } catch (parseErr) {
-                // Ignore parse errors on malformed chunks
-              }
+          for (const req of routed.approvals ?? []) {
+            let decision: { status: 'allow' | 'deny'; reason?: string };
+            try {
+              decision = await h.onApproval(req);
+            } catch (err: any) {
+              console.error('Groundwork approval handler failed:', err);
+              decision = { status: 'deny', reason: `approval handler error: ${err?.message ?? err}` };
             }
+            await this.sendApprovalDecision(sessionId, state.turnId, req, decision);
+          }
+
+          if (routed.done) {
+            return { status: routed.done.status, message: routed.done.message, sessionId };
           }
         }
       }
-
-      return { status: 'completed', sessionId };
-    } catch (err: any) {
-      clearTimeout(timeoutTimer);
-      if (controller.signal.aborted) {
-        return {
-          status: 'error',
-          message: 'no response from model within 20s',
-          sessionId,
-        };
-      }
-      return {
-        status: 'error',
-        message: err.message || 'Stream connection error',
-        sessionId,
-      };
     }
   }
 

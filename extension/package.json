@@ -89,8 +89,9 @@
             "type": "string"
           },
           "default": [
-            "anthropic/claude-3-7-sonnet",
-            "openai/gpt-4o"
+            "gemini/gemini-2.5-flash",
+            "groq/llama-3.3-70b-versatile",
+            "ollama/qwen2.5-coder:7b"
           ],
           "description": "Configured models list (primary first, followed by fallback options)."
         }
@@ -101,7 +102,8 @@
     "vscode:prepublish": "npm run build",
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
-    "test": "node --test dist-test/**/*.test.js"
+    "typecheck": "tsc --noEmit -p .",
+    "test": "node --import ../scripts/register-loader.mjs --test test/smoke.test.ts test/mcp/*.test.ts test/edits/*.test.ts test/stats/*.test.ts test/trueforge/*.test.ts test/context/*.test.ts"
   },
   "dependencies": {
     "diff": "^7.0.0"

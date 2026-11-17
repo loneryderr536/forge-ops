@@ -3,7 +3,7 @@
   "description": "Editor-native coding agent: evidence-based retrieval, reviewed multi-file edits, tests.",
   "manifest": {
     "model": {
-      "name": "anthropic/claude-3-7-sonnet",
+      "name": "gemini/gemini-2.5-flash",
       "params": {
         "temperature": 0.2,
         "max_tokens": 4096

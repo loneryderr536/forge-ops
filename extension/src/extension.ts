@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { EditStore } from './edits/store';
 import { ReviewController } from './edits/review';
+import { ReviewUi } from './edits/reviewUi';
 import { ContextMeter } from './context/budget';
 import { parseMentions } from './context/mentions';
 import { ForgeClient } from './trueforge/client';
@@ -25,12 +26,20 @@ export async function activate(context: vscode.ExtensionContext) {
   const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
 
   const store = new EditStore();
-  const review = new ReviewController();
+  const reviewUi = new ReviewUi(root);
+  const review = new ReviewController((edit, controller) => {
+    void reviewUi.show(edit, controller);
+  });
+  reviewUi.register(context, () => review);
   const meter = new ContextMeter(25000);
 
   const config = vscode.workspace.getConfiguration('groundwork');
   const trueforgeUrl = config.get<string>('trueforgeUrl') || 'http://localhost:8790';
-  let models = config.get<string[]>('models') || ['anthropic/claude-3-7-sonnet', 'openai/gpt-4o'];
+  let models = config.get<string[]>('models') || [
+    'gemini/gemini-2.5-flash',
+    'groq/llama-3.3-70b-versatile',
+    'ollama/qwen2.5-coder:7b',
+  ];
 
   const client = new ForgeClient(trueforgeUrl);
 
@@ -89,6 +98,9 @@ export async function activate(context: vscode.ExtensionContext) {
     await registerMcpServer(trueforgeUrl, 'groundwork-editor', mcpInstance.url, mcpInstance.token);
   } catch (err: any) {
     console.warn('MCP Server initialization error:', err.message);
+    vscode.window.showWarningMessage(
+      `Groundwork: could not register its tool server with TrueForge at ${trueforgeUrl} (${err.message}). Start TrueForge, then reload the window.`
+    );
   }
 
   // Panel Provider
@@ -165,12 +177,13 @@ export async function activate(context: vscode.ExtensionContext) {
         const spec = loadAgentSpec('Forge-ops', modelName);
         const sessId = await client.startSession({ spec });
         currentSessionId = sessId;
-        return await client.runTurn(sessId, finalPrompt, handlers);
+        return await client.runTurn(sessId, finalPrompt, handlers, 20000, currentAbortController?.signal);
       },
       (notice) => {
         panelProvider.post({ type: 'banner', level: 'warn', text: notice });
         store.discardPending();
         review.cancelAll();
+        reviewUi.refresh();
       }
     );
 
@@ -191,6 +204,7 @@ export async function activate(context: vscode.ExtensionContext) {
       await client.cancel(currentSessionId);
     }
     review.cancelAll();
+    reviewUi.refresh();
     store.discardPending();
     currentAbortController?.abort();
 
