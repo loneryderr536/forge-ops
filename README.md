@@ -113,4 +113,4 @@ Run the complete unit and integration test suite:
 ```bash
 node --import ./scripts/register-loader.mjs --test extension/test/smoke.test.ts extension/test/mcp/*.test.ts extension/test/edits/*.test.ts extension/test/stats/*.test.ts extension/test/trueforge/*.test.ts extension/test/context/*.test.ts
 ```
-# forge-ops
+
