@@ -1,1 +1,1 @@
-"""A tiny shopping-cart library used to try out the Groundwork extension."""
+"""A tiny shopping-cart library used to try out the Forge-ops extension."""

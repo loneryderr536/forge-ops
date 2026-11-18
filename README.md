@@ -1,8 +1,8 @@
-# Groundwork
+# Forge-ops
 
 > *A coding agent that shows its work — it finds the right code with evidence, and nothing touches your files until you approve it.*
 
-Groundwork is an editor-native coding extension for VS Code that operates as a client to a local TrueForge agent. TrueForge runs the core model loop, session state, and tool approvals, while Groundwork provides the editor UI, an embedded local MCP tool server, and an evidence-based statistician retrieval subagent.
+Forge-ops is an editor-native coding extension for VS Code that operates as a client to a local TrueForge agent. TrueForge runs the core model loop, session state, and tool approvals, while Forge-ops provides the editor UI, an embedded local MCP tool server, and an evidence-based statistician retrieval subagent.
 
 ---
 
@@ -90,7 +90,7 @@ python -m venv .venv && source .venv/bin/activate && pip install -e . pytest
    ```
 
 ### Task B (Multi-File Agent Task)
-1. Open the Groundwork sidebar panel.
+1. Open the Forge-ops sidebar panel.
 2. Enter the task instruction without naming files:
    > Add a new built-in CLI command flask config that prints the loaded application's configuration as JSON, masking the values of any key containing SECRET, PASSWORD, TOKEN or KEY as "***". It must appear in flask --help, be covered by a test, and be documented alongside the other built-in commands.
 3. Watch the Statistician subagent rank `src/flask/cli.py`, `tests/test_cli.py`, and `docs/cli.rst`.

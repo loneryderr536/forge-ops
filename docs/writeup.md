@@ -1,7 +1,7 @@
-# Groundwork: TrueForge Coding Agent Extension — Round 1 Technical Report
+# Forge-ops: TrueForge Coding Agent Extension — Round 1 Technical Report
 
 ## 1. Team
-- Groundwork Team (Team Size: 3)
+- Forge-ops Team (Team Size: 3)
 - Focus: Editor-native agent integration, evidence-based retrieval, diff safety, and multi-model resilience.
 
 ## 2. Starting Point
@@ -17,12 +17,12 @@ The architecture strictly enforces separation of concerns:
 - **Per-Hunk Approval Workflow**:
   1. `tool.approval_required` arrives from TrueForge for `edit_file`.
   2. The extension computes structured hunks against the live editor buffer.
-  3. If target text is missing or ambiguous, Groundwork auto-denies without troubling the developer.
+  3. If target text is missing or ambiguous, Forge-ops auto-denies without troubling the developer.
   4. The editor displays inline diff decorations and CodeLens controls (`✓ Accept | ✗ Reject`).
   5. Only approved hunks are applied to disk as atomic workspace edits.
 
 ## 4. How Context Is Selected: The Statistician Subagent
-Rather than consuming thousands of tokens reading full files or relying on black-box embeddings, Groundwork employs a deterministic statistician subagent:
+Rather than consuming thousands of tokens reading full files or relying on black-box embeddings, Forge-ops employs a deterministic statistician subagent:
 - **BM25 Relevance (Weight: 0.6)**: Chunks code by top-level declarations (functions/classes in Python, sections in markdown/rst) with parameters $k_1 = 1.2$, $b = 0.75$.
 - **Git Co-Change History (Weight: 0.25)**: Evaluates $P(B \mid A) = \frac{\text{commits}(A \wedge B)}{\text{commits}(A)}$ over the last 3000 commits, automatically filtering mass refactors (>30 files).
 - **Import Graph Proximity (Weight: 0.15)**: Statically parses relative and absolute Python imports to locate structural neighbors.

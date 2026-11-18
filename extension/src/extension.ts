@@ -95,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Start MCP server inside extension
   try {
     mcpInstance = await startMcpServer(deps);
-    await registerMcpServer(trueforgeUrl, 'groundwork-editor', mcpInstance.url, mcpInstance.token);
+    await registerMcpServer(trueforgeUrl, 'forge-ops-editor', mcpInstance.url, mcpInstance.token);
   } catch (err: any) {
     console.warn('MCP Server initialization error:', err.message);
     vscode.window.showWarningMessage(
@@ -288,7 +288,7 @@ export async function activate(context: vscode.ExtensionContext) {
           await runWithFallback(
             models,
             async (modelName) => {
-              const spec = loadAgentSpec('groundwork-inline', modelName);
+              const spec = loadAgentSpec('forge-ops-inline', modelName);
               const sessId = await client.startSession({ spec });
               currentSessionId = sessId;
               return await client.runTurn(sessId, prompt, handlers);

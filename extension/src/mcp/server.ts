@@ -150,7 +150,7 @@ export function startMcpServer(deps: ToolDeps): Promise<McpServerInstance> {
           if (method === 'initialize') {
             result = {
               protocolVersion: '2024-11-05',
-              serverInfo: { name: 'groundwork-editor', version: '0.1.0' },
+              serverInfo: { name: 'forge-ops-editor', version: '0.1.0' },
               capabilities: { tools: {} },
             };
           } else if (method === 'tools/list') {

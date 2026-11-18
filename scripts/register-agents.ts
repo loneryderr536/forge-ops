@@ -6,11 +6,8 @@ const currentDir = typeof __dirname !== 'undefined'
   ? __dirname
   : path.dirname(fileURLToPath(import.meta.url));
 
-export function loadAgentSpec(name: 'Forge-ops' | 'groundwork-main' | 'groundwork-inline', modelOverride?: string): any {
-  let filePath = path.resolve(currentDir, `../agent/${name}.json`);
-  if (!fs.existsSync(filePath) && name === 'Forge-ops') {
-    filePath = path.resolve(currentDir, '../agent/groundwork-main.json');
-  }
+export function loadAgentSpec(name: 'Forge-ops' | 'forge-ops-inline', modelOverride?: string): any {
+  const filePath = path.resolve(currentDir, `../agent/${name}.json`);
   const raw = fs.readFileSync(filePath, 'utf-8');
   const parsed = JSON.parse(raw);
   if (modelOverride && parsed.manifest && parsed.manifest.model) {
@@ -21,7 +18,7 @@ export function loadAgentSpec(name: 'Forge-ops' | 'groundwork-main' | 'groundwor
 
 export async function registerAgents(baseUrl = 'http://localhost:8790'): Promise<void> {
   const mainSpec = loadAgentSpec('Forge-ops');
-  const inlineSpec = loadAgentSpec('groundwork-inline');
+  const inlineSpec = loadAgentSpec('forge-ops-inline');
 
   const payloadMain = {
     name: 'forge-ops',
@@ -30,7 +27,7 @@ export async function registerAgents(baseUrl = 'http://localhost:8790'): Promise
   };
 
   const payloadInline = {
-    name: 'groundwork-inline',
+    name: 'forge-ops-inline',
     description: 'Edits only the user selected region.',
     manifest: inlineSpec
   };
@@ -70,7 +67,7 @@ type ProviderManifest = Record<string, unknown>;
 function providerManifests(env: NodeJS.ProcessEnv): { label: string; manifest: ProviderManifest }[] {
   const out: { label: string; manifest: ProviderManifest }[] = [];
   if (!env.GEMINI_API_KEY) console.warn('GEMINI_API_KEY is empty: skipping google-gemini (agent forge-ops needs it).');
-  if (!env.GROQ_API_KEY) console.warn('GROQ_API_KEY is empty: skipping groq (agent groundwork-inline needs it).');
+  if (!env.GROQ_API_KEY) console.warn('GROQ_API_KEY is empty: skipping groq (agent forge-ops-inline needs it).');
   if (env.GEMINI_API_KEY) {
     out.push({
       label: 'google-gemini',

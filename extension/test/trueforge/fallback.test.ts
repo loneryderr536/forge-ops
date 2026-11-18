@@ -115,3 +115,37 @@ test('rate_limit_gives_up_after_retries_then_falls_back', async () => {
   assert.strictEqual(m1Calls, 4); // initial + 3 waits
   assert.strictEqual(res.model, 'm2');
 });
+
+test('long_quota_falls_back_without_waiting', async () => {
+  const waits: number[] = [];
+  const res = await runWithFallback(
+    ['m1', 'm2'],
+    async (model): Promise<TurnResult> =>
+      model === 'm1'
+        ? { status: 'error', message: '429 quota exceeded. Please retry in 10h52m58.5s.', sessionId: 's' }
+        : { status: 'completed', sessionId: 's' },
+    () => {},
+    async (ms) => {
+      waits.push(ms);
+    }
+  );
+  assert.strictEqual(res.model, 'm2');
+  assert.deepStrictEqual(waits, []);
+});
+
+test('unknown_tool_retries_same_model', async () => {
+  let calls = 0;
+  const res = await runWithFallback(
+    ['m1', 'm2'],
+    async (): Promise<TurnResult> => {
+      calls++;
+      return calls < 3
+        ? { status: 'error', message: "tool call validation failed: attempted to call tool 'runME' which was not in request.tools", sessionId: 's' }
+        : { status: 'completed', sessionId: 's' };
+    },
+    () => {},
+    async () => {}
+  );
+  assert.strictEqual(res.model, 'm1');
+  assert.strictEqual(calls, 3);
+});

@@ -1,6 +1,6 @@
 export async function registerMcpServer(
   baseUrl: string,
-  name = 'groundwork-editor',
+  name = 'forge-ops-editor',
   url: string,
   token: string
 ): Promise<void> {

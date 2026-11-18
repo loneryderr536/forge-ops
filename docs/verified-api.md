@@ -12,7 +12,7 @@ Remote MCP server registration with TrueForge:
 {
   "manifest": {
     "type": "remote",
-    "name": "groundwork-editor",
+    "name": "forge-ops-editor",
     "description": "...",
     "url": "http://127.0.0.1:<port>/mcp",
     "auth": { "type": "header", "headers": { "Authorization": "Bearer <token>" } }
